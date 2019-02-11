@@ -126,32 +126,23 @@ class ARMarker extends HTMLElement {
 
         self = this
         arController.addEventListener('getMarker', function(ev) {
+            // verify if the detected marker is the current marker
             if (ev.data.marker.idPatt == markerId) {
-                // console.log(self.threeMarker.id)
-                // console.log(arController.threePatternMarkers[1].id)
+                if(!self.gifLoaded){
+                    self.gif = gifler(self.getAttribute('content'))
+                                .animate(self.canvas)
+                    self.gifLoaded = true;
+                }
                 if(!self.gifPlaying) {
-                    console.log('entrou')
-                    // self.ctx.fillStyle = "red"
-                    // self.ctx.fillRect(0,0,self.canvas.width, self.canvas.height)
                     var tm = arScene.arController.threePatternMarkers[markerId]
                     let texture = new THREE.CanvasTexture(self.canvas);
                     let material = new THREE.MeshBasicMaterial({map: texture, transparent: true})
                     tm.children[0].material = material
-                    // console.log(ev.data.marker)
-                    self.playGif()
-                    // tm.children[0].material.map.needsUpdate = true;
-                    // texture.needsUpdate = true;
-                }
-                // arController.threePatternMarkers[0].children[0].material.map.needsUpdate = true
-                // arController.threePatternMarkers[0].children[0].material.needsUpdate = true
 
+                    // self.playGif()
+                }
             }
         });
-    }
-
-    createPlane() {
-        return
-        // new THREE.PlaneGeometry(5, 20)
     }
 
     playGif() {
