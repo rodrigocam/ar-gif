@@ -4,7 +4,8 @@ class ARScene extends HTMLElement {
     constructor() {
         // parent constructor
         super();
-        this.markersId = []
+        this.markers = []
+        this.registeredMarkers = {}
     }
 
     connectedCallback() {
@@ -15,36 +16,33 @@ class ARScene extends HTMLElement {
                 maxARVideoSize: 600,
                 cameraParam: 'camera_para.dat',
                 onSuccess: function(arScene, arController, arCamera) {
-                    console.log(arController.threePatternMarkers[0])
-                    self.registerMarkers(arController, arScene);
+                    self.arScene = arScene
+                    self.arController = arController
                     
-                    // arController.addEventListener('getMarker', function(ev) {
-                    //     if (self.markersId.includes(ev.data.marker.idPatt)){
+                    self.registerMarkers();
+
+                    self.renderer = self.createRenderer(arScene, arController);
+                    document.body.appendChild(self.renderer.domElement);
+
+                    arController.addEventListener('markerNum', function(ev) {
+                        console.log("Detected " + ev.data + " markers.")
+                    });
+
+                    // self.arController.addEventListener('getMarker', function(ev) {
+                    //     try {
+                    //         let marker = self.registeredMarkers[ev.data.marker.idPatt]
+                    //         marker.detected();
                     //         console.log(ev.data.marker)
+                    //     } catch (error) {
+                            
                     //     }
                     // });
 
-                    var renderer = new THREE.WebGLRenderer({antialias: true});
-                    var f = Math.min(
-                        window.innerWidth / arScene.video.videoWidth,
-                        window.innerHeight / arScene.video.videoHeight
-                    );
-                    var w = f * arScene.video.videoWidth;
-                    var h = f * arScene.video.videoHeight;
-
-                    if (arController.orientation === 'portrait') {
-                        renderer.setSize(h,w);
-                        renderer.domElement.style.transformOrigin = '0 0';
-                        renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)';
-                    } else {
-                        renderer.setSize(w,h);
-                    }
-                    document.body.appendChild(renderer.domElement);
-
-                    var tick = function() {
-                        arScene.process()
-                        self.updateMarkersTexture(arScene);
-                        arScene.renderOn(renderer)
+                    let tick = function() {
+                        self.arScene.process();
+                        self.updateMarkers();
+                        // self.updateMarkersTexture();
+                        self.arScene.renderOn(self.renderer);
                         requestAnimationFrame(tick);
                     }
                     tick();
@@ -57,38 +55,80 @@ class ARScene extends HTMLElement {
         console.log('connected')
     }
 
+    /*
+    Create WebGl renderer.
+    */
+    createRenderer() {
+        let renderer = new THREE.WebGLRenderer({antialias: true});
+        let f = Math.min(
+            window.innerWidth / this.arScene.video.videoWidth,
+            window.innerHeight / this.arScene.video.videoHeight
+        );
+        let w = f * this.arScene.video.videoWidth;
+        let h = f * this.arScene.video.videoHeight;
+        
+        if (this.arController.orientation === 'portrait') {
+            renderer.setSize(h,w);
+            renderer.domElement.style.transformOrigin = '0 0';
+            renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)';
+        } else {
+            renderer.setSize(w,h);
+        }
+
+        return renderer;
+    }
+
     /* 
     Register all ar-markers inside this ar-scene.
     */
-    registerMarkers(arController, arScene) {
-        var markers = Array.from(this.children).filter((child) => {
-            if(child.tagName == 'AR-MARKER') {
-                return true;
-            }
-            return false;
-        })
+    registerMarkers() {
+        this.markers = Array.from(this.children).filter((child) => {
+            return (child.tagName == "AR-MARKER") ? true : false
+        });
 
-        const self = this
-        for (let m of markers) {
+        for (let m of this.markers) {
             let single = m.getAttribute("multi") ? false : true
             if (single) {
-                arController.loadMarker(m.getAttribute("patt"), function(id) {
-                    m.init(id, arController, arScene)
-   
-                    self.markersId.push(id)
-                    
-                    console.log('Marker registered')
+                const self = this;
+                self.arController.loadMarker(m.getAttribute("patt"), function(id) {
+                    m.init(id, self.arScene, self.arController);
+                    self.registeredMarkers[id] = m
+                    console.log("Marker registered!");
                 })
+            }
+            //TODO: deal with multimarkers
+        }
+    }
+
+    /*
+    Set visibility of all children markers.
+    */
+    updateMarkersVisibility() {
+        for (let key in this.arController.threePatternMarkers) {
+            let marker = this.arController.threePatternMarkers[key];
+            console.log(marker)
+            if(marker.object3D.visible) {
+                console.log(marker)
+                marker.children[0].material.map.needsUpdate = true;
+                marker.children[0].material.needsUpdate = true;
             }
         }
     }
 
-    updateMarkersTexture(arScene){
-        for (let key in arScene.arController.threePatternMarkers) {
-            var marker = arScene.arController.threePatternMarkers[key]
+    /*
+    Set visibility and update texture of visible markers.
+    */
+    updateMarkers() {
+        for (let key in this.arController.threePatternMarkers) {
+            let marker = this.arController.threePatternMarkers[key];
             if(marker.visible) {
-                marker.children[0].material.map.needsUpdate = true
-                marker.children[0].material.needsUpdate = true
+                // console.log('achou ', key)
+                marker.children[0].material.map.needsUpdate = true;
+                marker.children[0].material.needsUpdate = true;
+            }else {
+                // console.log('perdeu ', key)
+                // console.log(this.registeredMarkers[key])
+                // this.registeredMarkers[key].stopGif();
             }
         }
     }
@@ -98,119 +138,69 @@ class ARMarker extends HTMLElement {
     constructor() {
         // parent constructor
         super();
-
         this.canvas = document.createElement('canvas');
         this.ctx = this.canvas.getContext('2d');
         this.gifLoaded = false;
+        this.gifPlaying = false;
     }
 
-    get markerId() {
-        return this.getAttribute('marker-id')
-    }
+    init(markerId, arScene, arController){
 
-    init(markerId, arController, arScene){
-        // geometry, material, plane
+        // this.appendChild(this.prototype.canvas)
         this.setAttribute('marker-id', markerId)
-        this.arController = arController
 
-        this.threeMarker = arController.createThreeMarker(markerId)
-        let geometry = new THREE.PlaneGeometry(1,1)
-
-        let texture = new THREE.CanvasTexture(this.canvas);
-
+        let threeMarker = arController.createThreeMarker(markerId)
+        let geometry = new THREE.PlaneGeometry()
+        let texture = new THREE.CanvasTexture(this.canvas)
         let material = new THREE.MeshBasicMaterial({map: texture, transparent: true})
         let plane = new THREE.Mesh(geometry, material)
 
-        this.threeMarker.add(plane)
-        arScene.scene.add(this.threeMarker)
+        threeMarker.add(plane)
+        arScene.scene.add(threeMarker)
 
         self = this
         arController.addEventListener('getMarker', function(ev) {
             // verify if the detected marker is the current marker
             if (ev.data.marker.idPatt == markerId) {
-                if(!self.gifLoaded){
-                    self.gif = gifler(self.getAttribute('content'))
-                                .animate(self.canvas)
+                if(!self.gifPlaying){
+                    self.gifPlaying = true;
                     self.gifLoaded = true;
-                }
-                if(!self.gifPlaying) {
-                    var tm = arScene.arController.threePatternMarkers[markerId]
-                    let texture = new THREE.CanvasTexture(self.canvas);
-                    let material = new THREE.MeshBasicMaterial({map: texture, transparent: true})
-                    tm.children[0].material = material
-
-                    // self.playGif()
+                    self.gif = gifler(self.getAttribute('content')).animate(self.canvas);
+                    self.updateMarkerTexture(self.get3DMarker(markerId, arScene));
                 }
             }
         });
     }
 
-    playGif() {
-        if(!this.gifLoaded) {
-            this.gif =  fetch(this.getAttribute('content'))
-                        .then(resp => resp.arrayBuffer())
-                        .then(buff => new GIF(buff))
-                        .then(this.gifLoaded = true)
-            
-            this.frames = this.gif.then(gif => gif.decompressFrames(true))
-            
-        }
-        this.gifPlaying = true;
-        this.frames.then(frames => this.renderGif(frames, 0))
+    /* 
+    Update this marker texture (generally used when the canvas content has changed).
+    */
+    updateMarkerTexture(threeMarker) {
+        let texture = new THREE.CanvasTexture(this.canvas);
+        let material = new THREE.MeshBasicMaterial({map: texture, transparent: true});
+        threeMarker.children[0].material = material;
     }
 
-    stopGif() {
-        this.gifPlaying = false;
+    /*
+    Return this marker representation on three.js scene.
+    */ 
+    get3DMarker(markerId, arScene) {
+        let arController = arScene.arController;
+        return arController.threePatternMarkers[markerId];
     }
 
-    renderGif(frames, frameIndex) {
-        if(this.gifPlaying) {
-            if (frameIndex >= frames.length) {
-                frameIndex = 0;
-            }
-            var frame = frames[frameIndex]
-            var start = new Date().getTime();
-        
-            if(frameIndex != 0) {
-                var lastFrame = frames[frameIndex - 1]
-                if(lastFrame.disposalType == 2) {
-                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-                }
-            } else {
-                this.canvas.width = frame.dims.width;
-                this.canvas.height = frame.dims.height;
-            }
-
-            this.drawFrame(frame);
-        
-            var end = new Date().getTime();
-        
-            var timeDiff = end - start;
-            
-            var self = this
-  
-            setTimeout(function() {
-                self.renderGif(frames, frameIndex+1);
-            }, Math.max(0, Math.floor(frame.delay - timeDiff)));
-        }
-    }
-
-    drawFrame(frame) {
-        var tmpCanvas = document.createElement('canvas');
-        
-        tmpCanvas.width = frame.dims.width;
-        tmpCanvas.height = frame.dims.height;
-  
-        var tmpCtx = tmpCanvas.getContext('2d');
-
-        var frameImageData = tmpCtx.createImageData(frame.dims.width, frame.dims.height);
-        frameImageData.data.set(frame.patch);
-
-        tmpCtx.putImageData(frameImageData, 0, 0);
-
-        this.ctx.drawImage(tmpCanvas, frame.dims.left, frame.dims.top);
-    }
+    /*
+    Stop gif animation.
+    */
+   stopGif() {
+       if(self.gifPlaying) {
+           const self = this
+           self.gif.then(function(animator) {
+               animator.stop();
+               self.gifPlaying = false;
+            })
+       }
+   }
 }
 
 
