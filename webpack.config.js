@@ -2,7 +2,7 @@ const config = {
     entry: ['./src/index.js'],
     output: {
         path: __dirname + '/build',
-        filename: 'web-ARt.js'
+        filename: 'ar-gif.js'
     },
     module: {
         rules: [
