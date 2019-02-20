@@ -1126,6 +1126,10 @@
 		var onError = configuration.onError || function(err) { console.error("ARController.getUserMedia", err); };
 
 		var video = document.createElement('video');
+		video.setAttribute('autoplay', '');
+        video.setAttribute('muted', '');
+        // This is critical for iOS or the video initially goes fullscreen
+        video.setAttribute('playsinline', '');
 
 		var initProgress = function() {
 			if (this.videoWidth !== 0) {

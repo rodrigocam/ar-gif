@@ -23,10 +23,24 @@ class ARScene extends HTMLElement {
 
     init() {
         const self = this
+        let config = {
+            maxARVideoSize: Math.max(document.body.clientHeight, document.body.clientWidth),
+            cameraParam: CameraParam,
+            facingMode: 'environment',
+        }
+  
+        if(document.body.clientWidth > document.body.clientHeight) {
+            config.width = {ideal: document.body.clientWidth},
+            config.height = {ideal: document.body.clientHeight}
+        }
+            
         window.ARThreeOnLoad = () => {
             ARController.getUserMediaThreeScene({
-                maxARVideoSize: 320,
+                maxARVideoSize: config.maxARVideoSize,
                 cameraParam: CameraParam,
+                facingMode: 'environment',
+                width: config.width,
+                height: config.height,
                 onSuccess: (arScene, arController, arCamera) => {
                     console.log("Initialized ar-scene")
                     self.registerMarkers(arScene, arController);
@@ -76,19 +90,24 @@ class ARScene extends HTMLElement {
 
     createRenderer(arScene, arController) {
         let renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true});
-        let f = Math.min(
-            window.innerWidth / arScene.video.videoWidth,
-            window.innerHeight / arScene.video.videoHeight
-        );
-        let width = f * arScene.video.videoWidth;
-        let height = f * arScene.video.videoHeight;
+
+        let width = arScene.video.videoWidth
+        let height = arScene.video.videoHeight
         
         if (arController.orientation === 'portrait') {
+            /* Inverted because of portrait mode */
             renderer.setSize(height, width);
+
             renderer.domElement.style.transformOrigin = '0 0';
             renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)';
+            
+            /* Inverted because of portrait mode */
+            renderer.domElement.style.width = document.body.clientHeight;
+            renderer.domElement.style.height = document.body.clientWidth;
         } else {
             renderer.setSize(width, height);
+            renderer.domElement.style.width = document.body.clientWidth;
+            renderer.domElement.style.height = document.body.clientHeight;
         }
 
         return renderer;
