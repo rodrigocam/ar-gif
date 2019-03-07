@@ -6,7 +6,6 @@ class ARScene extends HTMLElement {
         super();
         this.htmlMarkers = []
         this.threeMarkers = {}
-        this.lastFrameVisibleMarkers = []
     }
 
     connectedCallback() {
@@ -17,21 +16,16 @@ class ARScene extends HTMLElement {
         this.init()
 
         if (window.ARController && ARController.getUserMediaThreeScene) {
-            ARThreeOnLoad();
+            ARThreeOnLoad()
         }
     }
 
     init() {
+        console.log('AR-GIF version 0.0.3')
         const self = this
         let config = {
-            maxARVideoSize: Math.max(document.body.clientHeight, document.body.clientWidth),
             cameraParam: CameraParam,
-            facingMode: 'environment',
-        }
-  
-        if(document.body.clientWidth > document.body.clientHeight) {
-            config.width = {ideal: document.body.clientWidth},
-            config.height = {ideal: document.body.clientHeight}
+            facingMode: 'environment'
         }
  
         window.ARThreeOnLoad = () => {
@@ -39,14 +33,16 @@ class ARScene extends HTMLElement {
                 maxARVideoSize: 640,
                 cameraParam: CameraParam,
                 facingMode: 'environment',
-                width: config.width,
-                height: config.height,
+
                 onSuccess: (arScene, arController, arCamera) => {
                     console.log("Initialized ar-scene")
-                    self.registerMarkers(arScene, arController);
+                    self.registerMarkers(arScene, arController)
                     
                     let renderer = self.createRenderer(arScene, arController)
+                    renderer.domElement.setAttribute("id", "arCanvas")
                     document.body.appendChild(renderer.domElement)
+
+                    window.addEventListener("resize", this.resizeWindow)
 
                     let tick = () => {
                         arScene.process()
@@ -55,7 +51,7 @@ class ARScene extends HTMLElement {
                         requestAnimationFrame(tick)
                     }
                     tick()
-                }
+                },
             })
         }
     }
@@ -67,7 +63,7 @@ class ARScene extends HTMLElement {
             if(single) {
                 console.log("Registering marker ", marker.patt)
                 arController.loadMarker(marker.patt, (id) => {
-                    marker.init(id, arScene, arController);
+                    marker.init(id, arScene, arController)
                     self.threeMarkers[id] = marker
                 })
             } else {
@@ -80,8 +76,8 @@ class ARScene extends HTMLElement {
         Object.keys(arController.threePatternMarkers).map((key, index) => {
             let marker = arController.threePatternMarkers[key]
             if(marker.visible) {
-                marker.children[0].material.needsUpdate = true;
-                marker.children[0].material.map.needsUpdate = true;
+                marker.children[0].material.needsUpdate = true
+                marker.children[0].material.map.needsUpdate = true
             }else if(marker.markerTracker.inPrevious && !marker.markerTracker.inCurrent){
                 this.threeMarkers[key].gifPlaying = false
             }
@@ -89,28 +85,28 @@ class ARScene extends HTMLElement {
     }
 
     createRenderer(arScene, arController) {
-        let renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true});
-
-        let width = arScene.video.videoWidth
-        let height = arScene.video.videoHeight
+        let renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true})
         
-        if (arController.orientation === 'portrait') {
-            /* Inverted because of portrait mode */
-            renderer.setSize(height, width);
+        let width = window.innerWidth
+        let height = window.innerHeight
 
-            renderer.domElement.style.transformOrigin = '0 0';
-            renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)';
-            
-            /* Inverted because of portrait mode */
-            renderer.domElement.style.width = document.body.clientHeight;
-            renderer.domElement.style.height = document.body.clientWidth;
-        } else {
-            renderer.setSize(width, height);
-            renderer.domElement.style.width = document.body.clientWidth;
-            renderer.domElement.style.height = document.body.clientHeight;
-        }
+		if (arController.orientation === 'portrait') {
+			renderer.setSize(height, width)
+			renderer.domElement.style.transformOrigin = '0 0'
+			renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)'
+		} else {
+            renderer.setSize(width, height)
+		}
 
         return renderer;
+    }
+
+    resizeWindow() {
+        let canvas = document.getElementById("arCanvas")
+        canvas.setAttribute("width", window.innerWidth)
+        canvas.setAttribute("height", window.innerHeight)
+        canvas.style.width = window.innerWidth
+        canvas.style.height = window.innerHeight
     }
 
     set arScene(value) {
