@@ -33,10 +33,10 @@ class ARScene extends HTMLElement {
             config.width = {ideal: document.body.clientWidth},
             config.height = {ideal: document.body.clientHeight}
         }
-            
+ 
         window.ARThreeOnLoad = () => {
             ARController.getUserMediaThreeScene({
-                maxARVideoSize: config.maxARVideoSize,
+                maxARVideoSize: 640,
                 cameraParam: CameraParam,
                 facingMode: 'environment',
                 width: config.width,

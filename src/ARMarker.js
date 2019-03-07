@@ -14,27 +14,27 @@ class ARMarker extends HTMLElement {
     init(markerId, arScene, arController) {
         this.markerId = markerId
         this.textureCanvas.setAttribute('id', markerId)
+
+        let texture = new THREE.CanvasTexture(this.textureCanvas)
+        this.material = new THREE.MeshBasicMaterial({map: texture, transparent: true});
+
         let threeMarker = this.create3DMarker(markerId, arController)
         arScene.scene.add(threeMarker)
         const self = this
         
         arController.addEventListener('getMarker', (ev) => {
+            // supress wanings
+            console.warn = function(){}
             if(ev.data.marker.id == markerId) {
                 if(!self.gifLoaded) {
                     self.gif = gifler(self.content).animate(self.textureCanvas)
                     self.gifLoaded = true;
                 }
                 self.gifPlaying = true
-                self.updateMarkerTexture(self.get3DMarker(markerId, arScene))              
+                texture.needsUpdate = true
             }
         })
         console.log("Initialized marker ", markerId, this.textureCanvas)
-    }
-
-    updateMarkerTexture(threeMarker) {
-        let texture = new THREE.CanvasTexture(this.textureCanvas);
-        let material = new THREE.MeshBasicMaterial({map: texture, transparent: true});
-        threeMarker.children[0].material = material;
     }
 
     get3DMarker(markerId, arScene) {
@@ -44,18 +44,15 @@ class ARMarker extends HTMLElement {
 
     create3DMarker(markerId, arController) {
         let threeMarker = arController.createThreeMarker(markerId)
-        let plane = this.create3DPlane(this.textureCanvas)
+        let plane = this.create3DPlane()
 
         threeMarker.add(plane)
         return threeMarker
     }
 
-    create3DPlane(textureCanvas) {
+    create3DPlane() {
         let geometry = new THREE.PlaneGeometry()
-        let texture = new THREE.CanvasTexture(textureCanvas)
-        let material = new THREE.MeshBasicMaterial({map: texture, transparent: true})
-        
-        return new THREE.Mesh(geometry, material)
+        return new THREE.Mesh(geometry, this.material)
     }
 
     static get observedAttributes() {
