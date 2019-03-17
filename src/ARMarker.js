@@ -9,6 +9,24 @@ class ARMarker extends HTMLElement {
         this.textureCanvas = document.createElement('canvas')
         this.gifPlaying = false
         this.gifLoaded = false
+
+        if(this.content) {
+            this.contentProps = {
+                src: this.content,
+                scale: {x: 1, y: 1, z: 1},
+                position: {x: 0, y: 0, z: 0},
+                rotation: {x: 0, y: 0, z: 0}
+            }
+        }else {
+            // case where the content was specified as ar-content
+            let arContent = this.children[0]
+            this.contentProps = {
+                src: arContent.getAttribute('src'),
+                scale: this.stringToVec3(arContent.getAttribute('scale')),
+                position: this.stringToVec3(arContent.getAttribute('position')),
+                rotation: this.stringToVec3(arContent.getAttribute('rotation'))
+            }
+        }
     }
 
     init(markerId, arScene, arController) {
@@ -27,7 +45,7 @@ class ARMarker extends HTMLElement {
             console.warn = function(){}
             if(ev.data.marker.id == markerId) {
                 if(!self.gifLoaded) {
-                    self.gif = gifler(self.content).animate(self.textureCanvas)
+                    self.gif = gifler(self.contentProps.src).animate(self.textureCanvas)
                     self.gifLoaded = true;
                 }
                 self.gifPlaying = true
@@ -45,14 +63,33 @@ class ARMarker extends HTMLElement {
     create3DMarker(markerId, arController) {
         let threeMarker = arController.createThreeMarker(markerId)
         let plane = this.create3DPlane()
-
         threeMarker.add(plane)
+
         return threeMarker
     }
 
     create3DPlane() {
         let geometry = new THREE.PlaneGeometry()
-        return new THREE.Mesh(geometry, this.material)
+        let plane = new THREE.Mesh(geometry, this.material)
+        let props = this.contentProps
+
+        // needed to apply content properties
+        plane.scale.set(props.scale.x, props.scale.y, props.scale.z)
+        plane.position.set(props.position.x, props.position.y, props.position.z)
+        plane.rotation.set(props.rotation.x, props.rotation.y, props.rotation.z)
+
+        return plane
+    }
+
+    // converts a string in the format "1 1 1" to an object like {x: 1, y: 1, z: 1}
+    stringToVec3(str) {
+        let split = str.split(" ")
+        
+        return {
+            x: split[0] || 0,
+            y: split[1] || 0,
+            z: split[2] || 0
+        }
     }
 
     static get observedAttributes() {
