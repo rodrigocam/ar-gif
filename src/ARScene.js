@@ -23,10 +23,6 @@ class ARScene extends HTMLElement {
     init() {
         console.log('AR-GIF version 0.0.3')
         const self = this
-        let config = {
-            cameraParam: CameraParam,
-            facingMode: 'environment'
-        }
  
         window.ARThreeOnLoad = () => {
             ARController.getUserMediaThreeScene({
@@ -87,15 +83,18 @@ class ARScene extends HTMLElement {
     createRenderer(arScene, arController) {
         let renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true})
         
-        let width = window.innerWidth
         let height = window.innerHeight
-
-		if (arController.orientation === 'portrait') {
-			renderer.setSize(height, width)
+        let width = 640/480 * window.screen.availHeight * window.devicePixelRatio
+        
+        renderer.setSize(width, height)
+        
+        if (arController.orientation === 'portrait') {
 			renderer.domElement.style.transformOrigin = '0 0'
-			renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)'
+            renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)'
 		} else {
-            renderer.setSize(width, height)
+            if(window.screen.availWidth > window.screen.availHeight) {
+                renderer.setSize(window.screen.availWidth, height)
+            }
 		}
 
         return renderer;
