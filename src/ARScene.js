@@ -21,7 +21,7 @@ class ARScene extends HTMLElement {
     }
 
     init() {
-        console.log('AR-GIF version 0.0.3')
+        console.log('AR-GIF version 0.0.4')
         const self = this
  
         window.ARThreeOnLoad = () => {
