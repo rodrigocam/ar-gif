@@ -23,7 +23,7 @@ class ARScene extends HTMLElement {
     init() {
         console.log('AR-GIF version 0.0.4')
         const self = this
- 
+
         window.ARThreeOnLoad = () => {
             ARController.getUserMediaThreeScene({
                 maxARVideoSize: 640,
@@ -33,10 +33,13 @@ class ARScene extends HTMLElement {
                 onSuccess: (arScene, arController, arCamera) => {
                     console.log("Initialized ar-scene")
                     self.registerMarkers(arScene, arController)
-                    
+
                     let renderer = self.createRenderer(arScene, arController)
                     renderer.domElement.setAttribute("id", "arCanvas")
-                    document.body.appendChild(renderer.domElement)
+
+                    const wrapper = this.createCanvasWrapper(renderer.domElement)
+
+                    document.body.appendChild(wrapper)
 
                     window.addEventListener("resize", this.resizeWindow)
 
@@ -52,11 +55,32 @@ class ARScene extends HTMLElement {
         }
     }
 
+    createCanvasWrapper(canvasElement) {
+
+        const wrapper = document.createElement("div")
+        wrapper.appendChild(canvasElement)
+        wrapper.setAttribute("id", "canvas-wrapper")
+        wrapper.style.position = "relative";
+        wrapper.style.overflow = "hidden";
+        wrapper.style.height = "100%";
+        wrapper.style.width = "100%";
+        return wrapper
+    }
+
+    centerCanvas(canvas) {
+        canvas.style.position = "absolute";
+        canvas.style.top = "-9999px";
+        canvas.style.bottom = "-9999px";
+        canvas.style.left = "-9999px";
+        canvas.style.right = "-9999px";
+        canvas.style.margin = "auto";
+    }
+
     registerMarkers(arScene, arController) {
         const self = this
         this.htmlMarkers.map((marker) => {
             let single = !marker.mult
-            if(single) {
+            if (single) {
                 console.log("Registering marker ", marker.patt)
                 arController.loadMarker(marker.patt, (id) => {
                     marker.init(id, arScene, arController)
@@ -71,41 +95,50 @@ class ARScene extends HTMLElement {
     updateMarkersState(arController) {
         Object.keys(arController.threePatternMarkers).map((key, index) => {
             let marker = arController.threePatternMarkers[key]
-            if(marker.visible) {
+            if (marker.visible) {
                 marker.children[0].material.needsUpdate = true
                 marker.children[0].material.map.needsUpdate = true
-            }else if(marker.markerTracker.inPrevious && !marker.markerTracker.inCurrent){
+            } else if (marker.markerTracker.inPrevious && !marker.markerTracker.inCurrent) {
                 this.threeMarkers[key].gifPlaying = false
             }
         })
     }
 
     createRenderer(arScene, arController) {
-        let renderer = new THREE.WebGLRenderer({antialias: true, preserveDrawingBuffer: true})
-        
+        let renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+
         let height = window.innerHeight
-        let width = 640/480 * window.screen.availHeight * window.devicePixelRatio
-        
+        let width = height * 4 / 3
         renderer.setSize(width, height)
-        
+
+        this.centerCanvas(renderer.domElement)
+
         if (arController.orientation === 'portrait') {
-			renderer.domElement.style.transformOrigin = '0 0'
+            renderer.domElement.style.transformOrigin = '0 0'
             renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)'
-		} else {
-            if(window.screen.availWidth > window.screen.availHeight) {
+        } else {
+            if (window.screen.availWidth > window.screen.availHeight) {
                 renderer.setSize(window.screen.availWidth, height)
             }
-		}
+        }
 
         return renderer;
     }
-
     resizeWindow() {
+        const videoAspect = 4 / 3
+        const ratio = window.innerWidth / window.innerHeight
+        let height
+        let width
+        if (ratio < videoAspect) {
+            height = window.innerHeight
+            width = window.innerHeight * videoAspect
+        } else {
+            height = window.innerWidth / videoAspect
+            width = window.innerWidth
+        }
         let canvas = document.getElementById("arCanvas")
-        canvas.setAttribute("width", window.innerWidth)
-        canvas.setAttribute("height", window.innerHeight)
-        canvas.style.width = window.innerWidth
-        canvas.style.height = window.innerHeight
+        canvas.style.width = width
+        canvas.style.height = height
     }
 
     set arScene(value) {
