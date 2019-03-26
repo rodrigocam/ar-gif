@@ -107,38 +107,28 @@ class ARScene extends HTMLElement {
     createRenderer(arScene, arController) {
         let renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
 
-        let height = window.innerHeight
-        let width = height * 4 / 3
-        renderer.setSize(width, height)
+        const size = calculateVideoSize();
+
+        //Defines canvas and resolution available
+        renderer.setSize(size.width, size.height)
 
         this.centerCanvas(renderer.domElement)
 
+        console.log(renderer.domElement)
         if (arController.orientation === 'portrait') {
             renderer.domElement.style.transformOrigin = '0 0'
             renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)'
         } else {
-            if (window.screen.availWidth > window.screen.availHeight) {
-                renderer.setSize(window.screen.availWidth, height)
-            }
+            if (window.screen.availWidth > window.screen.availHeight) {}
         }
 
         return renderer;
     }
     resizeWindow() {
-        const videoAspect = 4 / 3
-        const ratio = window.innerWidth / window.innerHeight
-        let height
-        let width
-        if (ratio < videoAspect) {
-            height = window.innerHeight
-            width = window.innerHeight * videoAspect
-        } else {
-            height = window.innerWidth / videoAspect
-            width = window.innerWidth
-        }
         let canvas = document.getElementById("arCanvas")
-        canvas.style.width = width
-        canvas.style.height = height
+        const size = calculateVideoSize()
+        canvas.style.width = size.width
+        canvas.style.height = size.height
     }
 
     set arScene(value) {
@@ -165,4 +155,21 @@ class ARScene extends HTMLElement {
         return this.getAttribute('renderer')
     }
 }
+
+function calculateVideoSize() {
+    const videoAspect = 4 / 3
+    const ratio = window.innerWidth / window.innerHeight
+    if (ratio < videoAspect) {
+        return {
+            height: window.innerHeight,
+            width: window.innerHeight * videoAspect
+        }
+    } else {
+        return {
+            height: window.innerWidth / videoAspect,
+            width: window.innerWidth
+        }
+    }
+}
+
 customElements.define("ar-scene", ARScene)
