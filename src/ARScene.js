@@ -41,7 +41,9 @@ class ARScene extends HTMLElement {
 
                     document.body.appendChild(wrapper)
 
+
                     window.addEventListener("resize", this.resizeWindow)
+                    window.addEventListener("onorientationchange orientationchange load", this.resizeWindow);
 
                     let tick = () => {
                         arScene.process()
@@ -106,29 +108,33 @@ class ARScene extends HTMLElement {
 
     createRenderer(arScene, arController) {
         let renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
-
+        window.arrenderer = renderer;
         const size = calculateVideoSize();
 
         //Defines canvas and resolution available
         renderer.setSize(size.width, size.height)
 
+        //Positions the video
+        // renderer.domElement.style.width = size.width
+        // renderer.domElement.style.height = size.height
         this.centerCanvas(renderer.domElement)
 
         console.log(renderer.domElement)
         if (arController.orientation === 'portrait') {
             renderer.domElement.style.transformOrigin = '0 0'
             renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)'
-        } else {
-            if (window.screen.availWidth > window.screen.availHeight) {}
-        }
+        } else {}
 
         return renderer;
     }
     resizeWindow() {
+        console.log("ADSIJADSIJADSIJDASIJADS")
         let canvas = document.getElementById("arCanvas")
         const size = calculateVideoSize()
+        console.log(size)
         canvas.style.width = size.width
         canvas.style.height = size.height
+        window.arrenderer.setSize(size.width, size.height)
     }
 
     set arScene(value) {
@@ -166,8 +172,8 @@ function calculateVideoSize() {
         }
     } else {
         return {
-            height: window.innerWidth / videoAspect,
-            width: window.innerWidth
+            width: window.innerWidth / videoAspect,
+            height: window.innerWidth
         }
     }
 }
