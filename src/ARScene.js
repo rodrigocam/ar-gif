@@ -6,6 +6,8 @@ class ARScene extends HTMLElement {
         super();
         this.htmlMarkers = []
         this.threeMarkers = {}
+        this.renderer = {}
+        this.croppedRenderer = {}
     }
 
     connectedCallback() {
@@ -22,7 +24,6 @@ class ARScene extends HTMLElement {
 
     init() {
         console.log('AR-GIF version 0.0.4')
-        const self = this
 
         window.ARThreeOnLoad = () => {
             ARController.getUserMediaThreeScene({
@@ -32,23 +33,34 @@ class ARScene extends HTMLElement {
 
                 onSuccess: (arScene, arController, arCamera) => {
                     console.log("Initialized ar-scene")
-                    self.registerMarkers(arScene, arController)
+                    this.registerMarkers(arScene, arController)
 
-                    let renderer = self.createRenderer(arScene, arController)
-                    renderer.domElement.setAttribute("id", "arCanvas")
+                    this.renderer = this.createRenderer(arScene, arController)
+                    this.renderer.domElement.setAttribute("id", "arCanvas")
 
-                    const wrapper = this.createCanvasWrapper(renderer.domElement)
+                    this.croppedRenderer = document.createElement("canvas")
+                    this.croppedRenderer.width = window.innerWidth
+                    this.croppedRenderer.height = window.innerHeight
 
-                    document.body.appendChild(wrapper)
+                    // if (arController.orientation === 'portrait') {
+                    //     this.renderer.domElement.style.transformOrigin = '0 0'
+                    //     this.renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)'
+                    //     this.croppedRenderer.style.transformOrigin = '0 0'
+                    //     this.croppedRenderer.style.transform = 'rotate(-90deg) translateX(-100%)'
+                    // }
 
+                    document.body.appendChild(this.croppedRenderer)
+
+                    this.resizeWindow()
 
                     window.addEventListener("resize", this.resizeWindow)
                     window.addEventListener("onorientationchange orientationchange load", this.resizeWindow);
 
                     let tick = () => {
                         arScene.process()
-                        arScene.renderOn(renderer)
-                        self.updateMarkersState(arController)
+                        arScene.renderOn(this.renderer)
+                        this.drawCroppedImage();
+                        this.updateMarkersState(arController)
                         requestAnimationFrame(tick)
                     }
                     tick()
@@ -57,25 +69,8 @@ class ARScene extends HTMLElement {
         }
     }
 
-    createCanvasWrapper(canvasElement) {
-
-        const wrapper = document.createElement("div")
-        wrapper.appendChild(canvasElement)
-        wrapper.setAttribute("id", "canvas-wrapper")
-        wrapper.style.position = "relative";
-        wrapper.style.overflow = "hidden";
-        wrapper.style.height = "100%";
-        wrapper.style.width = "100%";
-        return wrapper
-    }
-
-    centerCanvas(canvas) {
-        canvas.style.position = "absolute";
-        canvas.style.top = "-9999px";
-        canvas.style.bottom = "-9999px";
-        canvas.style.left = "-9999px";
-        canvas.style.right = "-9999px";
-        canvas.style.margin = "auto";
+    drawCroppedImage() {
+        this.cropCanvas(this.renderer.domElement, this.croppedRenderer, cropParams);
     }
 
     registerMarkers(arScene, arController) {
@@ -108,33 +103,51 @@ class ARScene extends HTMLElement {
 
     createRenderer(arScene, arController) {
         let renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
-        window.arrenderer = renderer;
-        const size = calculateVideoSize();
 
         //Defines canvas and resolution available
-        renderer.setSize(size.width, size.height)
-
-        //Positions the video
-        // renderer.domElement.style.width = size.width
-        // renderer.domElement.style.height = size.height
-        this.centerCanvas(renderer.domElement)
-
-        console.log(renderer.domElement)
-        if (arController.orientation === 'portrait') {
-            renderer.domElement.style.transformOrigin = '0 0'
-            renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)'
-        } else {}
-
+        renderer.setSize(640, 480)
+            //renderer.style.display = "none";
         return renderer;
     }
+
     resizeWindow() {
-        console.log("ADSIJADSIJADSIJDASIJADS")
-        let canvas = document.getElementById("arCanvas")
-        const size = calculateVideoSize()
-        console.log(size)
-        canvas.style.width = size.width
-        canvas.style.height = size.height
-        window.arrenderer.setSize(size.width, size.height)
+        const videoHeight = 480
+        const videoWidth = 640
+        const videoAspect = videoWidth / videoHeight // Same as 4/3
+
+        const width = window.innerWidth
+        const height = window.innerHeight
+        const canvas = document.getElementsByTagName("canvas")[0]
+
+        canvas.width = width
+        canvas.height = height
+
+        const portrait = ((width / height) < videoAspect)
+        let cropSize = {}
+        if (portrait) {
+            const cropWidth = (width * videoHeight) / height
+            cropSize = {
+                cropY: 0,
+                cropHeight: videoHeight,
+                cropWidth: cropWidth,
+                cropX: (videoWidth / 2) - (cropWidth / 2)
+            }
+        } else {
+            const cropHeight = (height * videoWidth) / width
+            cropSize = {
+                cropX: 0,
+                cropWidth: videoWidth,
+                cropHeight: cropHeight,
+                cropY: (videoHeight / 2) - (cropHeight / 2)
+            }
+        }
+        cropParams = cropSize
+    }
+
+    cropCanvas(srcCanvas, targetCanvas, cropParams) {
+        var ctx = targetCanvas.getContext('2d');
+        ctx.drawImage(srcCanvas, cropParams.cropX, cropParams.cropY, cropParams.cropWidth, cropParams.cropHeight,
+            0, 0, targetCanvas.width, targetCanvas.height);
     }
 
     set arScene(value) {
@@ -152,30 +165,11 @@ class ARScene extends HTMLElement {
     get arController() {
         return this.getAttribute('arController')
     }
-
-    set renderer(value) {
-        this.setAttribute('renderer', value)
-    }
-
-    get renderer() {
-        return this.getAttribute('renderer')
-    }
 }
-
-function calculateVideoSize() {
-    const videoAspect = 4 / 3
-    const ratio = window.innerWidth / window.innerHeight
-    if (ratio < videoAspect) {
-        return {
-            height: window.innerHeight,
-            width: window.innerHeight * videoAspect
-        }
-    } else {
-        return {
-            width: window.innerWidth / videoAspect,
-            height: window.innerWidth
-        }
-    }
+var cropParams = {
+    cropX: 0,
+    cropWidth: 640,
+    cropHeight: 480,
+    cropY: 0
 }
-
 customElements.define("ar-scene", ARScene)

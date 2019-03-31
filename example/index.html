@@ -1,19 +1,21 @@
 <html>
-    <head>
-        <script src="vendor/artoolkit.min.js"></script>
-        <script src="vendor/three.min.js"></script>
-        <script src="vendor/artoolkit.three.js"></script>
-        <script src="ar-gif.min.js" defer></script>
-    </head>
 
-<body>
-        <ar-scene>
-            <ar-marker patt="patts/temaki.patt" content="gifs/temaki.gif"></ar-marker>
-            <ar-marker patt="patts/peixe.patt">
-                <ar-content src="gifs/peixe.gif" scale="1.5 1.5" position="0 0 0" rotation="0 0 0">
-                </ar-content>
-            </ar-marker>
-            <ar-marker mult patterns="" content="gifs/multi.gif"></ar-marker>
-        </ar-scene>
-    </body>
+<head>
+    <script src="vendor/artoolkit.min.js"></script>
+    <script src="vendor/three.min.js"></script>
+    <script src="vendor/artoolkit.three.js"></script>
+    <script src="ar-gif.min.js" defer></script>
+</head>
+
+<body style="overflow: hidden; margin:0;">
+    <ar-scene>
+        <ar-marker patt="patts/temaki.patt" content="gifs/temaki.gif"></ar-marker>
+        <ar-marker patt="patts/peixe.patt">
+            <ar-content src="gifs/peixe.gif" scale="1.5 1.5" position="0 0 0" rotation="0 0 0">
+            </ar-content>
+        </ar-marker>
+        <ar-marker mult patterns="" content="gifs/multi.gif"></ar-marker>
+    </ar-scene>
+</body>
+
 </html>
