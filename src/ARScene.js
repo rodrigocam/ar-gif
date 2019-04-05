@@ -35,6 +35,8 @@ class ARScene extends HTMLElement {
                     console.log("Initialized ar-scene")
                     this.registerMarkers(arScene, arController)
 
+                    window.arController = arController;
+
                     this.renderer = this.createRenderer(arScene, arController)
                     this.renderer.domElement.setAttribute("id", "arCanvas")
 
@@ -42,12 +44,12 @@ class ARScene extends HTMLElement {
                     this.croppedRenderer.width = window.innerWidth
                     this.croppedRenderer.height = window.innerHeight
 
-                    // if (arController.orientation === 'portrait') {
-                    //     this.renderer.domElement.style.transformOrigin = '0 0'
-                    //     this.renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)'
-                    //     this.croppedRenderer.style.transformOrigin = '0 0'
-                    //     this.croppedRenderer.style.transform = 'rotate(-90deg) translateX(-100%)'
-                    // }
+                    if (arController.orientation === 'portrait') {
+                        // this.renderer.domElement.style.transformOrigin = '0 0'
+                        // this.renderer.domElement.style.transform = 'rotate(-90deg) translateX(-100%)'
+                        this.croppedRenderer.style.transformOrigin = '0 0'
+                        this.croppedRenderer.style.transform = 'rotate(-90deg) translateX(-100%)'
+                    }
 
                     document.body.appendChild(this.croppedRenderer)
 
@@ -104,9 +106,8 @@ class ARScene extends HTMLElement {
     createRenderer(arScene, arController) {
         let renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
 
-        //Defines canvas and resolution available
         renderer.setSize(640, 480)
-            //renderer.style.display = "none";
+
         return renderer;
     }
 
@@ -127,10 +128,17 @@ class ARScene extends HTMLElement {
         if (portrait) {
             const cropWidth = (width * videoHeight) / height
             cropSize = {
-                cropY: 0,
-                cropHeight: videoHeight,
-                cropWidth: cropWidth,
-                cropX: (videoWidth / 2) - (cropWidth / 2)
+                    cropY: 0,
+                    cropHeight: videoHeight,
+                    cropWidth: cropWidth,
+                    cropX: (videoWidth / 2) - (cropWidth / 2)
+                }
+                //Started on Landscape, Got on portrait
+            if (window.arController.orientation === 'landscape') {
+                cropSize.cropY = 0
+                cropSize.cropWidth = cropSize.cropHeight
+                cropSize.cropX = (videoWidth / 2) - (cropSize.cropWidth) / 2
+                cropSize.cropHeight = (width * videoWidth) / height
             }
         } else {
             const cropHeight = (height * videoWidth) / width
