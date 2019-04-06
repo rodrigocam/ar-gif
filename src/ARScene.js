@@ -137,34 +137,26 @@ class ARScene extends HTMLElement {
                 cropSize.cropY = 0
                 cropSize.cropHeight = (width * videoWidth) / height
                 cropSize.cropWidth = videoHeight
-                cropSize.cropX = (videoWidth / 2) - (cropSize.cropWidth) / 2
+                cropSize.cropX = videoWidth - cropSize.cropWidth
             } else {
-                const cropHeight = (height * videoWidth) / width
-                cropSize = {
-                    cropX: 0,
-                    cropWidth: videoWidth,
-                    cropHeight: cropHeight,
-                    cropY: (videoHeight / 2) - (cropHeight / 2)
-                }
+                cropSize.cropX = 0
+                cropSize.cropWidth = videoWidth
+                cropSize.cropHeight = (height * videoWidth) / width
+                cropSize.cropY = videoHeight - cropSize.cropHeight
             }
         } else {
+
             //Landscape
             if (portrait) {
-                const cropWidth = (width * videoWidth) / (height * 0.7)
-                cropSize = {
-                    cropY: 0,
-                    cropHeight: videoHeight,
-                    cropWidth: cropWidth,
-                    cropX: (videoWidth / 2) - (cropWidth / 2)
-                }
+                cropSize.cropY = 0
+                cropSize.cropHeight = videoHeight
+                cropSize.cropWidth = (width * videoWidth) / (height * 0.7)
+                cropSize.cropX = videoWidth - cropSize.cropWidth
             } else {
-                const cropHeight = (height * videoWidth) / width
-                cropSize = {
-                    cropX: 0,
-                    cropWidth: videoWidth,
-                    cropHeight: cropHeight,
-                    cropY: (videoHeight / 2) - (cropHeight / 2)
-                }
+                cropSize.cropX = 0
+                cropSize.cropWidth = videoWidth
+                cropSize.cropHeight = (height * videoWidth) / width
+                cropSize.cropY = videoHeight - cropSize.cropHeight
             }
         }
 
