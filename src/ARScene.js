@@ -150,7 +150,7 @@ class ARScene extends HTMLElement {
         } else {
             //Landscape
             if (portrait) {
-                const cropWidth = (width * videoHeight) / height
+                const cropWidth = (width * videoWidth) / height
                 cropSize = {
                     cropY: 0,
                     cropHeight: videoHeight,
