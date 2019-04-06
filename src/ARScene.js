@@ -124,9 +124,12 @@ class ARScene extends HTMLElement {
             width = window.innerWidth
             height = window.innerHeight
         }
+
         canvas.width = width
         canvas.height = height
+
         const portrait = ((width / height) < videoAspect)
+
         let cropSize = {}
         if (window.arController.orientation === 'landscape') {
             //Started on Landscape, Got on portrait
@@ -146,20 +149,20 @@ class ARScene extends HTMLElement {
             }
         } else {
             //Landscape
-            if (!portrait) {
-                const cropHeight = (width * videoHeight) / height
+            if (portrait) {
+                const cropWidth = (width * videoHeight) / height
                 cropSize = {
-                    cropX: 0,
-                    cropHeight: cropHeight,
-                    cropWidth: videoWidth,
-                    cropY: (videoHeight / 2) - (cropHeight / 2)
+                    cropY: 0,
+                    cropHeight: videoHeight,
+                    cropWidth: cropWidth,
+                    cropX: (videoWidth / 2) - (cropWidth / 2)
                 }
             } else {
                 const cropHeight = (height * videoWidth) / width
                 cropSize = {
                     cropX: 0,
-                    cropWidth: cropHeight,
-                    cropHeight: videoWidth,
+                    cropWidth: videoWidth,
+                    cropHeight: cropHeight,
                     cropY: (videoHeight / 2) - (cropHeight / 2)
                 }
             }
@@ -170,8 +173,8 @@ class ARScene extends HTMLElement {
 
     cropCanvas(srcCanvas, targetCanvas, cropParams) {
         var ctx = targetCanvas.getContext('2d');
-        ctx.drawImage(srcCanvas, 0, 0, 640, 480, 0, 0, targetCanvas.width, targetCanvas.height)
-            //ctx.drawImage(srcCanvas, cropParams.cropX, cropParams.cropY, cropParams.cropWidth, cropParams.cropHeight,0, 0, targetCanvas.width, targetCanvas.height);
+        //ctx.drawImage(srcCanvas, 0, 0, 640, 480, 0, 0, targetCanvas.width, targetCanvas.height)
+        ctx.drawImage(srcCanvas, cropParams.cropX, cropParams.cropY, cropParams.cropWidth, cropParams.cropHeight, 0, 0, targetCanvas.width, targetCanvas.height);
     }
 
     set arScene(value) {
