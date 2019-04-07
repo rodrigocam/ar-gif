@@ -134,7 +134,10 @@ class ARScene extends HTMLElement {
             cropHeight = (height * videoWidth) / width
             y = videoHeight - cropHeight
         } else {
-            if (window.arController.orientation === 'landscape') {
+            if (isDesktop()) {
+                cropHeight = videoHeight
+                cropWidth = (width * videoHeight) / height
+            } else if (window.arController.orientation === 'landscape') {
                 cropHeight = (width * videoWidth) / height
                 cropWidth = videoHeight
             } else {
@@ -177,6 +180,9 @@ function getWindowSize(orientation) {
     return { width: width, height: height }
 }
 
+function isDesktop() {
+    return !(/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i.test(navigator.userAgent))
+}
 var crop = {
     x: 0,
     y: 0,
