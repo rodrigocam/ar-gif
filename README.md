@@ -5,6 +5,8 @@ Easy to use augmented reality web components!
 ## Introduction
 ar-gif is an effort to bring augmented reality with web components in a easy way. For now it only supports gif playing with pattern detection markers, but if you want to add new functionalities feel free to contribute.
 
+This web-component is used in [Jandig](https://github.com/memeLab/Jandig), a project the aims to bring AR and Art for everyone.
+
 ### Usage
 ar-gif has a simple API, we have an ar-scene and one or more ar-markers. 
 ```html
