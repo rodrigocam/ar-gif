@@ -9,7 +9,7 @@ ar-gif is an effort to bring augmented reality with web components in a easy way
 ar-gif has a simple API, we have an ar-scene and one or more ar-markers. 
 ```html
 <ar-scene>
-  <ar-marker patt="hiro.patt" content="hiro.gif"></armarker>  
+  <ar-marker patt="hiro.patt" content="hiro.gif"></ar-marker>  
 </ar-scene>
 ```
 Each ar-scene is responsible to detect every marker inside it and each marker is reponsible to show his content.
