@@ -38,18 +38,39 @@ class ARMarker extends HTMLElement {
 
         let threeMarker = this.create3DMarker(markerId, arController)
         arScene.scene.add(threeMarker)
+
+        if(this.contentProps.src.split(".")[1] == "gif"){
+            this.contentIsGif = true;
+        }else{
+            this.video = document.createElement("video");
+            this.video.src = this.contentProps.src;
+            this.video.loop = true;
+            this.video.muted = true;
+        }
+
         const self = this
         
         arController.addEventListener('getMarker', (ev) => {
             // supress wanings
             console.warn = function(){}
-            if(ev.data.marker.id == markerId) {
+            if(ev.data.marker.id == markerId && self.contentIsGif) {
                 if(!self.gifLoaded) {
                     self.gif = gifler(self.contentProps.src).animate(self.textureCanvas)
                     self.gifLoaded = true;
                 }
                 self.gifPlaying = true
                 texture.needsUpdate = true
+            } else if(ev.data.marker.id == markerId) {
+                self.video.play();
+                (function loop() {
+                    let ctx = self.textureCanvas.getContext('2d');
+                    if (!self.video.paused && !self.video.ended) {
+                        ctx.clearRect(0,0, self.textureCanvas.width, self.textureCanvas.height); 
+                        ctx.drawImage(self.video, 0, 0, self.textureCanvas.width, self.textureCanvas.height);
+                        texture.needsUpdate = true;
+                        setTimeout(loop, 1000 / 30); // drawing at 30fps
+                    }
+                })();
             }
         })
         console.log("Initialized marker ", markerId, this.textureCanvas)

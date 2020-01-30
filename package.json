@@ -2,7 +2,6 @@
   "name": "ar-gif",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,6 +16,7 @@
     "babel-loader": "^8.0.5",
     "babel-polyfill": "^6.26.0",
     "url-loader": "^1.1.2",
-    "webpack": "^4.29.5"
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
   }
 }
