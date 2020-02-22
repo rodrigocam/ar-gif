@@ -36,11 +36,17 @@ class ARMarker extends HTMLElement {
         let texture = new THREE.CanvasTexture(this.textureCanvas)
         this.material = new THREE.MeshBasicMaterial({map: texture, transparent: true});
 
-        let threeMarker = this.create3DMarker(markerId, arController)
-        arScene.scene.add(threeMarker)
+        let threeMarker = this.create3DMarker(markerId, arController);
+        arScene.scene.add(threeMarker);
 
-        if(this.contentProps.src.split(".")[1] == "gif"){
+        let content_ext = this.contentProps.src.split(".")[1];
+
+        if(content_ext == "gif"){
             this.contentIsGif = true;
+        }else if(content_ext == "png" || content_ext == "jpg" || content_ext == "jpeg"){
+            this.contentIsImage = true;
+            this.image = document.createElement("img");
+            this.image.src = this.contentProps.src;
         }else{
             this.video = document.createElement("video");
             this.video.src = this.contentProps.src;
@@ -60,6 +66,11 @@ class ARMarker extends HTMLElement {
                 }
                 self.gifPlaying = true
                 texture.needsUpdate = true
+            } else if (self.contentIsImage){
+                let ctx = self.textureCanvas.getContext('2d');
+                ctx.clearRect(0, 0, self.textureCanvas.width, self.textureCanvas.height);
+                ctx.drawImage(self.image, 0, 0, self.textureCanvas.width, self.textureCanvas.height);
+        
             } else if(ev.data.marker.id == markerId) {
                 self.video.play();
                 (function loop() {
