@@ -16,6 +16,6 @@ ar-gif has a simple API, we have an ar-scene and one or more ar-markers.
 </ar-scene>
 ```
 Each ar-scene is responsible to detect every marker inside it and each marker is reponsible to show his content.
-The "patt" attribute indicates which pattern will be registered for that marker and the content is the gif that will be played.
+The "patt" attribute indicates which pattern will be registered for that marker and the content is the gif, image or video that will be played.
 
 For more information about how to use, check [index.html](https://github.com/rodrigocam/ar-gif/blob/master/example/index.html) int [example](https://github.com/rodrigocam/ar-gif/blob/master/example) folder.
