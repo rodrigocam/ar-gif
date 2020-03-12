@@ -21,13 +21,14 @@ You can use also use some simple attributes to control the appeareance.
 - scale : as a two dimensional vector
 - position : as a three dimensional vector
 - rotation : as a three dimensional vector
-- audio : [0|1] If your mp4 supports audio.
+- audio : [0|1] If your mp4 supports audio. The default behavior is muted playback.
+- loop : [0|1] Stop a mp4 video at the end. The default behavior is looped playback.
 
 
 ```html
 <ar-scene>
   <ar-marker patt="hiro.patt" content="hiro.gif" scale="1 1" position="0 0 0" rotation="0 0 0"></ar-marker>
-  <ar-marker patt="cat.patt" content="cat.mp4" audio="1"></ar-marker>
+  <ar-marker patt="cat.patt" content="cat.mp4" audio="1" loop="0"></ar-marker>
 </ar-scene>
 ```
 Each ar-scene is responsible to detect every marker inside it and each marker is reponsible to show his content.

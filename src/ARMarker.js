@@ -16,6 +16,7 @@ class ARMarker extends HTMLElement {
                 scale: {x: 1, y: 1, z: 1},
                 position: {x: 0, y: 0, z: 0},
                 rotation: {x: 0, y: 0, z: 0},
+                loop: 0,
                 audio: 0,
             }
         }else {
@@ -26,6 +27,7 @@ class ARMarker extends HTMLElement {
                 scale: this.stringToVec3(arContent.getAttribute('scale')),
                 position: this.stringToVec3(arContent.getAttribute('position')),
                 rotation: this.stringToVec3(arContent.getAttribute('rotation')),
+                loop: arContent.getAttribute('loop'),
                 audio: arContent.getAttribute('audio')
             }
         }
@@ -52,7 +54,13 @@ class ARMarker extends HTMLElement {
         }else{
             this.video = document.createElement("video");
             this.video.src = this.contentProps.src;
+
             this.video.loop = true;
+            if(this.contentProps.loop == 0)
+            {
+                this.video.loop = false;
+            }
+
             this.video.muted = true;
             if(this.contentProps.audio == 1)
             {
@@ -78,6 +86,10 @@ class ARMarker extends HTMLElement {
                 ctx.drawImage(self.image, 0, 0, self.textureCanvas.width, self.textureCanvas.height);
 
             } else if(ev.data.marker.id == markerId) {
+                if(self.video.ended != 0 && self.contentProps.loop == 0)
+                {
+                    return;
+                }
                 self.video.play();
                 (function loop() {
                     let ctx = self.textureCanvas.getContext('2d');
