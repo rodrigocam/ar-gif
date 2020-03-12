@@ -15,6 +15,21 @@ ar-gif has a simple API, we have an ar-scene and one or more ar-markers.
   <ar-marker patt="cat.patt" content="cat.mp4"></ar-marker>
 </ar-scene>
 ```
+
+You can use also use some simple attributes to control the appeareance.
+
+- scale : as a two dimensional vector
+- position : as a three dimensional vector
+- rotation : as a three dimensional vector
+- audio : [0|1] If your mp4 supports audio.
+
+
+```html
+<ar-scene>
+  <ar-marker patt="hiro.patt" content="hiro.gif" scale="1 1" position="0 0 0" rotation="0 0 0"></ar-marker>
+  <ar-marker patt="cat.patt" content="cat.mp4" audio="1"></ar-marker>
+</ar-scene>
+```
 Each ar-scene is responsible to detect every marker inside it and each marker is reponsible to show his content.
 The "patt" attribute indicates which pattern will be registered for that marker and the content is the gif, image or video that will be played.
 
