@@ -15,7 +15,9 @@ class ARMarker extends HTMLElement {
                 src: this.content,
                 scale: {x: 1, y: 1, z: 1},
                 position: {x: 0, y: 0, z: 0},
-                rotation: {x: 0, y: 0, z: 0}
+                rotation: {x: 0, y: 0, z: 0},
+                loop: 0,
+                audio: 0,
             }
         }else {
             // case where the content was specified as ar-content
@@ -24,7 +26,9 @@ class ARMarker extends HTMLElement {
                 src: arContent.getAttribute('src'),
                 scale: this.stringToVec3(arContent.getAttribute('scale')),
                 position: this.stringToVec3(arContent.getAttribute('position')),
-                rotation: this.stringToVec3(arContent.getAttribute('rotation'))
+                rotation: this.stringToVec3(arContent.getAttribute('rotation')),
+                loop: arContent.getAttribute('loop'),
+                audio: arContent.getAttribute('audio')
             }
         }
     }
@@ -50,12 +54,22 @@ class ARMarker extends HTMLElement {
         }else{
             this.video = document.createElement("video");
             this.video.src = this.contentProps.src;
+
             this.video.loop = true;
+            if(this.contentProps.loop == 0)
+            {
+                this.video.loop = false;
+            }
+
             this.video.muted = true;
+            if(this.contentProps.audio == 1)
+            {
+                this.video.muted = false;
+            }
         }
 
         const self = this
-        
+
         arController.addEventListener('getMarker', (ev) => {
             // supress wanings
             console.warn = function(){}
@@ -70,13 +84,17 @@ class ARMarker extends HTMLElement {
                 let ctx = self.textureCanvas.getContext('2d');
                 ctx.clearRect(0, 0, self.textureCanvas.width, self.textureCanvas.height);
                 ctx.drawImage(self.image, 0, 0, self.textureCanvas.width, self.textureCanvas.height);
-        
+
             } else if(ev.data.marker.id == markerId) {
+                if(self.video.ended != 0 && self.contentProps.loop == 0)
+                {
+                    return;
+                }
                 self.video.play();
                 (function loop() {
                     let ctx = self.textureCanvas.getContext('2d');
                     if (!self.video.paused && !self.video.ended) {
-                        ctx.clearRect(0,0, self.textureCanvas.width, self.textureCanvas.height); 
+                        ctx.clearRect(0,0, self.textureCanvas.width, self.textureCanvas.height);
                         ctx.drawImage(self.video, 0, 0, self.textureCanvas.width, self.textureCanvas.height);
                         texture.needsUpdate = true;
                         setTimeout(loop, 1000 / 30); // drawing at 30fps
@@ -116,7 +134,7 @@ class ARMarker extends HTMLElement {
     // converts a string in the format "1 1 1" to an object like {x: 1, y: 1, z: 1}
     stringToVec3(str) {
         let split = str.split(" ")
-        
+
         return {
             x: split[0] || 0,
             y: split[1] || 0,
