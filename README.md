@@ -1,6 +1,14 @@
-# ar-gif
-Easy to use augmented reality web components!
+# AR-gif
+Easy to use augmented reality web components that support GIFs and Videos!
 
+# Build
+
+To build AR-gif locally, to test or create new features, you need to use `webpack-cli`. You can use our shortcut on npm:
+```bash
+$ npm install
+
+$ npm run build
+```
 
 ## Introduction
 ar-gif is an effort to bring augmented reality with web components in a easy way. It supports **gif**, **png**, **jpg**, **mp4** and **webm** playing with pattern detection markers, but if you want to add new functionalities feel free to contribute.
