@@ -1,6 +1,5 @@
-# ar-gif
-
-Easy to use augmented reality web components!
+# AR-gif
+Easy to use augmented reality web components that support GIFs and Videos!
 
 ## Introduction
 
@@ -23,3 +22,12 @@ Each ar-scene is responsible to detect every marker inside it and each marker is
 The "patt" attribute indicates which pattern will be registered for that marker and the content is the **gif**, **image** or **video** that will be played.
 
 For more information about how to use, check [index.html](https://github.com/rodrigocam/ar-gif/blob/master/example/index.html) in the [example](https://github.com/rodrigocam/ar-gif/blob/master/example) folder.
+
+
+# Build
+
+To build AR-gif locally, to test or create new features, you need to use `webpack-cli`. You can use our shortcut on npm:
+```bash
+$ npm install
+
+$ npm run build
