@@ -39,7 +39,7 @@ class ARMarker extends HTMLElement {
         let threeMarker = this.create3DMarker(markerId, arController);
         arScene.scene.add(threeMarker);
 
-        let content_ext = this.contentProps.src.split(".")[1];
+        let content_ext = this.contentProps.src.split(".").pop();
 
         if(content_ext == "gif"){
             this.contentIsGif = true;

@@ -23,7 +23,7 @@ class ARScene extends HTMLElement {
     }
 
     init() {
-        console.log('AR-GIF version 0.0.5')
+        console.log('AR-GIF version 0.0.6')
 
         window.ARThreeOnLoad = () => {
             ARController.getUserMediaThreeScene({
